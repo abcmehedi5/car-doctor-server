@@ -34,24 +34,47 @@ async function run() {
     console.log("successfully connected to MongoDB!");
     const db = client.db("car-doctor");
     const serviceCollection = db.collection("services");
-    const bookingCollection = db.collection("services");
+    const bookingCollection = db.collection("booking");
 
     app.get("/services", async (req, res) => {
       const reslut = await serviceCollection.find().toArray();
       res.send(reslut);
+    });
 
-      app.get("/services/:id", async (req, res) => {
-        const id = req.params.id;
-        const query = { _id: new ObjectId(id) };
-        const option = {
-          title: 1,
-          price: 1,
-          service_id: 1,
-          img: 1,
-        };
-        const reslut = await serviceCollection.findOne(query, option);
-        res.send(reslut);
-      });
+    app.get("/services/:id", async (req, res) => {
+      const id = req.params.id;
+      const query = { _id: new ObjectId(id) };
+      const option = {
+        projection: { title: 1, price: 1, service_id: 1, img: 1 },
+      };
+      const reslut = await serviceCollection.findOne(query, option);
+      res.send(reslut);
+    });
+
+    // booking submited
+    app.post("/booking", async (req, res) => {
+      const data = req.body;
+      const result = await bookingCollection.insertOne(data);
+      res.send(result);
+    });
+
+    app.get("/bookingAll", async (req, res) => {
+      const result = await bookingCollection.find().toArray();
+      res.send(result);
+    });
+
+    app.get("/booking", async (req, res) => {
+      const email = req.query.email;
+      const result = await bookingCollection.find({ email: email }).toArray();
+      res.send(result);
+    });
+
+    app.delete("/booking/:id", async (req, res) => {
+      const id = req.params.id;
+      const query = { _id: new ObjectId(id) };
+      const result = await bookingCollection.deleteOne(query);
+      console.log(id);
+      res.send(result);
     });
   } finally {
     // Ensures that the client will close when you finish/error
